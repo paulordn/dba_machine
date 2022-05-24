@@ -1,0 +1,157 @@
+/* Comandos Select*/
+select * from BKP_USUARIO.LOG_USUARIO;
+
+SELECT * FROM USUARIOS;
+
+DESC USUARIOS;
+
+USE usuario;
+
+/*Criação da DATABASE de usuarios*/
+
+CREATE DATABASE usuario;
+
+/* Criando Tabela Usuarios*/
+
+CREATE TABLE USUARIOS (
+idUsuario INT(20) NOT NULL auto_increment primary key,
+nome VARCHAR(50) NOT NULL,
+email VARCHAR(50) NOT NULL,
+senha VARCHAR(100) NOT NULL,
+CPF CHAR(11) NOT NULL,
+Tipo_de_conta boolean NOT NULL,
+DATANASC date NOT NULL,
+CARGO VARCHAR(20) NOT NULL
+);
+
+/*Inserção de dados mockados na tabela usuários*/
+
+INSERT INTO USUARIOS VALUES(NULL, 'JACQUE', 'JACQUE@GMAIL.COM', 'JACQUE123', '19758367580', true, '1990-06-21', 'OPERADOR');
+INSERT INTO USUARIOS VALUES(NULL, 'JAC', 'JAC@GMAIL.COM', 'JACE123', '40089223403', false, '1980-07-12', 'ESTUDANTE');
+INSERT INTO USUARIOS VALUES(NULL, 'MARCOS', 'MARCOS@GMAIL.COM', 'MARCOS123', '40089223486', true, '1990-04-17', 'ESTUDANTE');
+INSERT INTO USUARIOS VALUES(NULL, 'NATALI123', 'NATALI1A@GMAIL.COM', 'NATALIA123', '40089223678', false, '1980-07-12', 'ESTUDANTE');
+
+/*Criação da DATABASE de Backup*/
+
+CREATE DATABASE BKP_USUARIO;
+
+use BKP_USUARIO;
+
+/*Criando a tabela de LOG do usuário*/
+
+CREATE TABLE LOG_USUARIO(
+idBackup INT PRIMARY KEY auto_increment,
+idUsuario INT,
+nome_anterior VARCHAR(50),
+nome_atual VARCHAR(50),
+email_anterior VARCHAR(50),
+email_atual VARCHAR(50),
+senha_anterior VARCHAR(100),
+senha_atual VARCHAR(100),
+CPF_anterior CHAR(11),
+CPF_atual CHAR(11),
+Tipo_de_conta_anterior boolean,
+Tipo_de_conta_atual boolean,
+DATANASC_anterior date,
+DATANASC_atual date,
+CARGO_anterior VARCHAR(20),
+CARGO_atual VARCHAR(20),
+Data_de_modificacao DATETIME,
+USUARIO VARCHAR(30),
+EVENTO CHAR(1)
+);
+
+       /* Criando Triggers */
+
+           USE usuario;
+
+
+ /* Trigger de Update */
+
+DELIMITER $
+CREATE TRIGGER tr_update
+AFTER UPDATE ON USUARIOS
+for each row
+begin
+
+       INSERT INTO BKP_USUARIO.LOG_USUARIO VALUES(NULL,OLD.idUsuario,OLD.nome,NEW.nome,OLD.email,
+       NEW.email,OLD.senha,NEW.senha,OLD.CPF,NEW.CPF,OLD.Tipo_de_conta,NEW.Tipo_de_conta,OLD.DATANASC,NEW.DATANASC,
+       OLD.CARGO,NEW.CARGO,now(), current_user(), 'U');
+end
+$
+
+
+DELIMITER ;
+
+UPDATE USUARIOS  
+SET password = '123'
+WHERE idUsuario = 4;
+
+
+ /* Trigger de Insert */
+
+DELIMITER $
+CREATE TRIGGER tr_insert
+AFTER INSERT ON USUARIOS
+for each row
+begin
+
+       INSERT INTO BKP_USUARIO.LOG_USUARIO VALUES(NULL,NEW.idUsuario,NULL,NEW.nome,NULL,
+       NEW.email,NULL,NEW.senha,NULL,NEW.CPF,NULL,NEW.Tipo_de_conta,NULL,NEW.DATANASC,
+       NULL,NEW.CARGO,now(), current_user(), 'I');
+end
+$
+
+DELIMITER ;
+
+INSERT INTO USUARIOS VALUES(NULL, 'PEDRO', 'PEDRO@GMAIL.COM', 'PEDRO123', '12378690643', true, '1978-09-12', 'PROFESSOR');
+
+ /* Trigger Delete */
+
+DELIMITER $
+CREATE TRIGGER tr_delete
+BEFORE DELETE ON USUARIOS
+for each row
+begin
+
+       INSERT INTO BKP_USUARIO.LOG_USUARIO VALUES(NULL,OLD.idUsuario,OLD.nome,NULL,OLD.email,
+       NULL,OLD.senha,NULL,OLD.CPF,NULL,OLD.Tipo_de_conta,NULL,OLD.DATANASC,NULL,
+       OLD.CARGO,NULL,now(), current_user(), 'D');
+end
+$
+DELIMITER ;
+
+
+DELETE FROM USUARIOS 
+WHERE idUsuario = 1;
+
+
+
+           /* Selects para uma melhor visualização de o que cada trigger alterou/deletou/inseriu*/
+		   
+/* Select das Trigger Update */
+SELECT nome_anterior,nome_atual, email_anterior,email_atual,senha_anterior, senha_atual,CPF_anterior, CPF_atual,Tipo_de_conta_anterior, Tipo_de_conta_atual,
+ DATANASC_anterior, DATANASC_atual,CARGO_anterior, CARGO_atual, Data_de_modificacao, USUARIO, EVENTO
+FROM BKP_USUARIO.LOG_USUARIO
+WHERE EVENTO = 'U';
+
+/*Select das Triggers Delete */
+SELECT nome_anterior, email_anterior, senha_anterior, CPF_anterior, Tipo_de_conta_anterior, DATANASC_anterior, CARGO_anterior, Data_de_modificacao, USUARIO, EVENTO
+FROM BKP_USUARIO.LOG_USUARIO
+WHERE EVENTO = 'D';
+
+/* Select das Triggers Insert */
+SELECT nome_atual, email_atual, senha_atual, CPF_atual, Tipo_de_conta_atual, DATANASC_atual, CARGO_atual, Data_de_modificacao, USUARIO, EVENTO
+FROM BKP_USUARIO.LOG_USUARIO
+WHERE EVENTO = 'I';
+
+/* Dados para teste */
+INSERT INTO USUARIOS VALUES(NULL, 'thiago', 'thiago@GMAIL.COM', 'thiago123', '12378690553', TRUE, '1978-09-12', 'ALUNO');
+
+INSERT INTO USUARIOS VALUES(NULL, 'matheus', 'MATHEUS@GMAIL.COM', 'MATHEUS123', '12378690553', TRUE, '1978-09-12', 'ALUNO');
+
+INSERT INTO USUARIOS VALUES(NULL, 'paulo', 'paulo@GMAIL.COM', 'paulo123', '12378690553', TRUE, '1978-09-12', 'ALUNO');
+
+
+
+
